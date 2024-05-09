@@ -1,0 +1,107 @@
+from datetime import datetime
+
+class Szoba:
+    def __init__(self, szobaszam, ar):
+        self.szobaszam = szobaszam
+        self.ar = ar
+
+class EgyagyasSzoba(Szoba):
+    def __init__(self, szobaszam):
+        super().__init__(szobaszam, 10000)
+
+class KetagyasSzoba(Szoba):
+    def __init__(self, szobaszam):
+        super().__init__(szobaszam, 15000)
+
+class Szalloda:
+    def __init__(self, nev):
+        self.nev = nev
+        self.szobak = {}
+
+    def uj_szoba(self, szoba):
+        self.szobak[szoba.szobaszam] = szoba
+
+class Foglalas:
+    def __init__(self, szoba, datum):
+        self.szoba = szoba
+        self.datum = datum
+
+class FoglalasManager:
+    def __init__(self, szalloda):
+        self.szalloda = szalloda
+        self.foglalasok = []
+
+    def foglalas(self, szobaszam, datum):
+        if szobaszam not in self.szalloda.szobak:
+            print("Nincs ilyen szoba.")
+            return
+
+        szoba = self.szalloda.szobak[szobaszam]
+
+        if datum < datetime.now():
+            print("Nem foglalhatsz múltbeli dátumra.")
+            return
+
+        for foglalas in self.foglalasok:
+            if foglalas.szoba.szobaszam == szobaszam and foglalas.datum == datum:
+                print("Ez a szoba már foglalt ezen a napon.")
+                return
+
+        self.foglalasok.append(Foglalas(szoba, datum))
+        print("Sikeres foglalás.")
+
+    def lemondas(self, szobaszam, datum):
+        for foglalas in self.foglalasok:
+            if foglalas.szoba.szobaszam == szobaszam and foglalas.datum == datum:
+                self.foglalasok.remove(foglalas)
+                print("Foglalás sikeresen törölve.")
+                return
+        print("Nincs ilyen foglalás.")
+
+    def listaz(self):
+        for foglalas in self.foglalasok:
+            print(f"Szoba: {foglalas.szoba.szobaszam}, Dátum: {foglalas.datum}")
+
+szalloda = Szalloda("Példa Szálloda")
+szalloda.uj_szoba(EgyagyasSzoba("101"))
+szalloda.uj_szoba(KetagyasSzoba("201"))
+szalloda.uj_szoba(KetagyasSzoba("202"))
+
+foglalas_manager = FoglalasManager(szalloda)
+foglalas_manager.foglalas("101", datetime(2024, 5, 10))
+foglalas_manager.foglalas("201", datetime(2024, 5, 12))
+foglalas_manager.foglalas("202", datetime(2024, 5, 12))
+foglalas_manager.foglalas("101", datetime(2024, 5, 15))
+foglalas_manager.foglalas("201", datetime(2024, 5, 15))
+
+while True:
+    print("\nVálassz műveletet:")
+    print("1. Foglalás")
+    print("2. Lemondás")
+    print("3. Foglalások listázása")
+    print("0. Kilépés")
+
+    valasztas = input("Választás: ")
+
+    if valasztas == "1":
+        szobaszam = input("Add meg a szobaszámot: ")
+        datum = input("Add meg a foglalás dátumát (YYYY-MM-DD): ")
+        try:
+            datum = datetime.strptime(datum, "%Y-%m-%d")
+            foglalas_manager.foglalas(szobaszam, datum)
+        except ValueError:
+            print("Hibás dátum formátum.")
+    elif valasztas == "2":
+        szobaszam = input("Add meg a szobaszámot: ")
+        datum = input("Add meg a lemondás dátumát (YYYY-MM-DD): ")
+        try:
+            datum = datetime.strptime(datum, "%Y-%m-%d")
+            foglalas_manager.lemondas(szobaszam, datum)
+        except ValueError:
+            print("Hibás dátum formátum.")
+    elif valasztas == "3":
+        foglalas_manager.listaz()
+    elif valasztas == "0":
+        break
+    else:
+        print("Érvénytelen választás.")
